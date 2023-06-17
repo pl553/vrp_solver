@@ -10,7 +10,7 @@
 #include "cvrp_loader.hpp"
 
 namespace CVRP {
-    std::unique_ptr<const CVRP::InstanceData> LoadVRPREP(const std::string& path) {
+    const CVRP::InstanceData LoadVRPREP(const std::string& path) {
         tinyxml2::XMLDocument doc;
         doc.LoadFile(path.c_str());
 
@@ -71,12 +71,12 @@ namespace CVRP {
         auto name = info->FirstChildElement("name")->GetText();
         auto dataset_name = info->FirstChildElement("dataset")->GetText();
 
-        auto data = std::make_unique<CVRP::InstanceData>();
-        data->name = std::move(name);
-        data->dataset_name = std::move(dataset_name);
-        data->nodes = std::move(points);
-        data->vehicle = vehicle;
-        data->requests = std::move(requests);
-        return data;
+        return CVRP::InstanceData {
+            .name = std::move(name),
+            .dataset_name = std::move(dataset_name),
+            .nodes = std::move(points),
+            .requests = std::move(requests),
+            .vehicle = vehicle
+        };
     }
 }

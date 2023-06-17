@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <memory>
+#include <iostream>
 
 namespace CVRP {
     struct Request {
