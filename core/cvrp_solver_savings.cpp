@@ -10,14 +10,6 @@
 
 #include "cvrp_model.hpp"
 
-std::ostream& operator<<(std::ostream& ostr, const std::list<int>& list)
-{
-    for (auto& i : list)
-        ostr << ' ' << i;
- 
-    return ostr;
-}
-
 struct Saving {
     int node_i;
     int node_j;
@@ -57,31 +49,31 @@ namespace CVRP {
         std::sort(savings.begin(), savings.end());
         std::reverse(savings.begin(), savings.end());
         std::list<std::pair<std::list<int>,float>> routes;
+        std::vector<std::list<std::pair<std::list<int>,float>>::iterator> ending(n, routes.end());
+        std::vector<std::list<std::pair<std::list<int>,float>>::iterator> starting(n, routes.end());
         for (int i = 1; i < n; ++i) {
             routes.push_back({{i}, quantities[i]});
+            ending[i] = --routes.end();
+            starting[i] = --routes.end();
         }
         for (const auto& saving : savings) {
-            auto it_starting_j = routes.end();
-            auto it_ending_i = routes.end();
-            for (auto it = routes.begin(); it != routes.end(); ++it) {
-                const auto& route = it->first;
-                if (route.front() == saving.node_j) {
-                    it_starting_j = it;
-                }
-                if (route.back() == saving.node_i) {
-                    it_ending_i = it;
-                }
-            }
+            auto it_starting_j = starting[saving.node_j];
+            auto it_ending_i = ending[saving.node_i];
             
             if (it_starting_j != routes.end() && it_ending_i != routes.end() && it_starting_j != it_ending_i) {
-                auto& route_i = it_ending_i->first;
                 float& route_i_load = it_ending_i->second;
-                auto& route_j = it_starting_j->first;
-                float& route_j_load = it_starting_j->second;
+                float route_j_load = it_starting_j->second;
                 if (route_i_load + route_j_load <= vehicle.capacity) {
+                    auto& route_i = it_ending_i->first;
+                    auto& route_j = it_starting_j->first;
                     route_i.splice(route_i.end(), route_j);
                     route_i_load += route_j_load;
                     routes.erase(it_starting_j);
+                    
+                    starting[saving.node_j] = routes.end();
+                    ending[saving.node_i] = routes.end();
+                    starting[route_i.front()] = it_ending_i;
+                    ending[route_i.back()] = it_ending_i;
                 }
             }
         }

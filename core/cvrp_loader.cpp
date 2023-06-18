@@ -32,8 +32,8 @@ namespace CVRP {
             throw std::runtime_error("nodes element not found");
         }
 
-        std::unordered_map<int, int> id_to_index;
-        std::vector<std::pair<Core::Point, int>> points_ids;
+        std::unordered_map<int,int> id_to_index;
+        std::vector<std::pair<Core::Point,int>> points_ids;
         auto node_i = nodes->FirstChildElement();
         for (int i = 0; node_i != nullptr; ++i, node_i = node_i->NextSiblingElement()) {
             int id = node_i->IntAttribute("id");
@@ -62,10 +62,8 @@ namespace CVRP {
             requests.push_back({.node_id = node_index, .quantity = quantity});
         }
 
-        std::vector<Core::Point> points;
-        for (const auto& p : points_ids) {
-            points.push_back(p.first);
-        }
+        std::vector<Core::Point> points(points_ids.size());
+        std::transform(points_ids.cbegin(), points_ids.cend(), points.begin(), [](auto p) { return p.first; });
 
         auto info = instance->FirstChildElement("info");
         auto name = info->FirstChildElement("name")->GetText();
