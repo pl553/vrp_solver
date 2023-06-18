@@ -3,5 +3,5 @@
 #include "cvrp_model.hpp"
 
 namespace CVRP {
-    float SolveSavings(const CVRP::InstanceData& data);
+    Solution SolveSavings(const CVRP::InstanceData& data);
 }

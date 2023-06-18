@@ -23,4 +23,9 @@ namespace CVRP {
         std::vector<Request> requests;
         Vehicle vehicle;
     };
+
+    struct Solution {
+        std::vector<std::vector<int>> routes;
+        float total_cost;
+    };
 }

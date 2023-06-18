@@ -35,11 +35,15 @@ float EdgeCost(const Core::Point& a, const Core::Point& b) {
 }
 
 namespace CVRP {
-    float SolveSavings(const CVRP::InstanceData& data) {
+    Solution SolveSavings(const CVRP::InstanceData& data) {
         const auto& nodes = data.nodes;
         const auto& requests = data.requests;
         const auto vehicle = data.vehicle;
         int n = nodes.size();
+        std::vector<float> quantities(n);
+        for (const auto& request : requests) {
+            quantities[request.node_id] += request.quantity;
+        }
         std::vector<Saving> savings;
         savings.reserve(n * (n - 1));
         for (int i = 1; i < n; ++i) {
@@ -52,46 +56,50 @@ namespace CVRP {
         }
         std::sort(savings.begin(), savings.end());
         std::reverse(savings.begin(), savings.end());
-        std::list<std::list<int>> routes;
+        std::list<std::pair<std::list<int>,float>> routes;
         for (int i = 1; i < n; ++i) {
-            routes.push_back({i});
+            routes.push_back({{i}, quantities[i]});
         }
         for (const auto& saving : savings) {
             auto it_starting_j = routes.end();
             auto it_ending_i = routes.end();
             for (auto it = routes.begin(); it != routes.end(); ++it) {
-                if (it->front() == saving.node_j) {
+                const auto& route = it->first;
+                if (route.front() == saving.node_j) {
                     it_starting_j = it;
                 }
-                if (it->back() == saving.node_i) {
+                if (route.back() == saving.node_i) {
                     it_ending_i = it;
                 }
             }
             
             if (it_starting_j != routes.end() && it_ending_i != routes.end() && it_starting_j != it_ending_i) {
-                it_ending_i->splice(it_ending_i->end(), *it_starting_j);
-                routes.erase(it_starting_j);
+                auto& route_i = it_ending_i->first;
+                float& route_i_load = it_ending_i->second;
+                auto& route_j = it_starting_j->first;
+                float& route_j_load = it_starting_j->second;
+                if (route_i_load + route_j_load <= vehicle.capacity) {
+                    route_i.splice(route_i.end(), route_j);
+                    route_i_load += route_j_load;
+                    routes.erase(it_starting_j);
+                }
             }
-        }
-        std::vector<float> quantities(n);
-        for (const auto& req : requests) {
-            quantities[req.node_id] += req.quantity;
         }
         float total_cost = 0;
-        for (const auto& route : routes) {
+        std::vector<std::vector<int>> routes_sol; 
+        for (const auto& p : routes) {
+            routes_sol.emplace_back();
             int prev_id = 0;
-            float route_cost = 0;
-            int trip_count = 0;
-            float quantity = 0;
-            for (int id : route) {
-                route_cost += EdgeCost(nodes[prev_id], nodes[id]);
+            for (int id : p.first) {
+                total_cost += EdgeCost(nodes[prev_id], nodes[id]);
                 prev_id = id;
-                quantity += quantities[id];
+                routes_sol.back().push_back(id);
             }
-            trip_count = std::ceil(quantity / vehicle.capacity);
-            route_cost += EdgeCost(nodes[prev_id], nodes[0]);
-            total_cost += route_cost * trip_count;
+            total_cost += EdgeCost(nodes[prev_id], nodes[0]);
         }
-        return total_cost;
+        return Solution {
+            .routes = routes_sol,
+            .total_cost = total_cost
+        };
     }
 }

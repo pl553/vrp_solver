@@ -5,7 +5,8 @@ project('vrp_solver', 'cpp',
 
 tinyxml2 = dependency('tinyxml2')
 
-exe = executable('vrp_solver', 'core/cvrp_loader.cpp', 'core/cvrp_solver_savings.cpp', 'main.cpp',
+exe = executable('vrp_solver', 'core/cvrp_loader.cpp', 'core/cvrp_solver_savings.cpp', 'core/cvrp_solution_verifier.cpp',
+  'main.cpp',
   dependencies : [tinyxml2], native : true)
 
 test('basic', exe)

@@ -1,11 +1,13 @@
 #include <iostream>
 #include <iomanip>
+#include <cassert>
 #include <fstream>
 #include <filesystem>
 #include <unordered_map>
 
 #include "core/cvrp_loader.hpp"
 #include "core/cvrp_solver_savings.hpp"
+#include "core/cvrp_solution_verifier.hpp"
 
 void TestCVRP() {
     if (!std::filesystem::is_directory("test_data/CVRP")) {
@@ -36,7 +38,9 @@ void TestCVRP() {
             for (const auto& p : name_instance_data) {
                 const auto& name = p.first;
                 const auto& bks = name_bks[name];
-                float cost = CVRP::SolveSavings(p.second);
+                auto solution = CVRP::SolveSavings(p.second);
+                float cost = solution.total_cost;
+                assert(CVRP::Verify(p.second, solution));
                 std::cout << name << std::endl;
                 std::cout << "  Savings algorithm: " << cost << ", " << 100 * cost / bks << "% of best known solution" << std::endl;
                 std::cout << "  Best known solution: " << bks << std::endl;
