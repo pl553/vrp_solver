@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <cassert>
 #include <chrono>
@@ -14,6 +15,8 @@ void TestCVRP() {
     if (!std::filesystem::is_directory("test_data/CVRP")) {
         throw std::runtime_error("Test data folder not found");
     }
+
+    std::ofstream results_out("results.md");
 
     for (auto it_dataset : std::filesystem::directory_iterator("test_data/CVRP")) {
         if (it_dataset.is_directory()) {
@@ -35,9 +38,17 @@ void TestCVRP() {
                 }
             }
 
+            auto dataset_name = name_instance_data.begin()->second.dataset_name;
+            int n_instances = name_instance_data.size();
+
             std::cout << std::endl;
-            std::cout << "Dataset: " << name_instance_data.begin()->second.dataset_name << std::endl; 
+            std::cout << "Dataset: " << dataset_name << std::endl; 
+
+            results_out << "## Dataset: " << dataset_name << std::endl;
+            results_out << "| Instance | Best known solution | Savings algorithm |" << std::endl;
+            results_out << "| --- | --- | --- |" << std::endl;
             float savings_total_time_ms = 0;
+            float savings_total_bks_ratio = 0;
             for (const auto& p : name_instance_data) {
                 const auto& name = p.first;
                 const auto& bks = name_bks[name];
@@ -50,13 +61,20 @@ void TestCVRP() {
                 savings_total_time_ms += ms;
 
                 float cost = solution.total_cost;
+                float bks_ratio = 100 * cost / bks;
+                savings_total_bks_ratio += bks_ratio;
+
                 assert(CVRP::Verify(p.second, solution));
                 std::cout << name << std::endl;
                 std::cout << "  Savings algorithm: " << cost << std::endl;
-                std::cout << "    " << 100 * cost / bks << "% of best known solution" << std::endl;
+                std::cout << "    " << bks_ratio << "% of best known solution" << std::endl;
                 std::cout << "    Time: " << ms << " ms" << std::endl;
                 std::cout << "  Best known solution: " << bks << std::endl;
+
+                results_out << "| " << name << " | " << bks << " | " << cost << " <br> " << bks_ratio << "% of BKS <br> " << ms << " ms |" << std::endl;  
             }
+            float savings_average_ratio = savings_total_bks_ratio / n_instances;
+            results_out << "|  |  | Total time: " << savings_total_time_ms << "ms <br> Average ratio: " << savings_average_ratio << "% |" << std::endl;
             std::cout << "Total savings algorithm time: " << savings_total_time_ms << " ms" << std::endl;
         }
     }
