@@ -143,8 +143,8 @@ int main() {
     Solver tabu_search = {"Tabu search (it = 19, tabu = 7)", [](const CVRP::InstanceData& data) {
         return CVRP::SolveTabu(data, 0x47282834, 19, 7);
     }};
-    Solver tabu_search_2 = {"Tabu search (it = 30, tabu = 10)", [](const CVRP::InstanceData& data) {
-        return CVRP::SolveTabu(data, 0x47282834, 30, 10);
+    Solver tabu_search_2 = {"Tabu search (it = 95, tabu = 7)", [](const CVRP::InstanceData& data) {
+        return CVRP::SolveTabu(data, 0x47282834, 95, 7);
     }};
     std::vector<Solver> solvers = {savings, savings_sample_sort, tabu_search, tabu_search_2};
     TestCVRP(solvers);
