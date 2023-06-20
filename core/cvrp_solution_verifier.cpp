@@ -23,7 +23,6 @@ namespace CVRP {
             }
             total_cost += Core::EdgeCost(instance_data.nodes[prev_v], instance_data.nodes[0]);
             if (load > vehicle.capacity) {
-                std::cout << load << ' ' << vehicle.capacity << ' ' << std::endl;
                 return false;
             }
         }
