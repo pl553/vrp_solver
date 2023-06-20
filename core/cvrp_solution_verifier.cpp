@@ -28,7 +28,6 @@ namespace CVRP {
             }
         }
         if (std::abs(total_cost - solution.total_cost) > 0.01f) {
-            std::cout << total_cost << std::endl;
             return false;
         }
         for (int i = 1; i < n; ++i) {
