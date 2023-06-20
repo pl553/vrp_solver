@@ -11,6 +11,7 @@
 
 #include "core/cvrp_loader.hpp"
 #include "core/cvrp_solver_savings.hpp"
+#include "core/cvrp_solver_tabu.hpp"
 #include "core/cvrp_solution_verifier.hpp"
 
 struct InstanceTestResults {
@@ -139,6 +140,9 @@ int main() {
     Solver savings_sample_sort = {"Savings algorithm (sample sort)", [](const CVRP::InstanceData& data) {
         return CVRP::SolveSavings(data, true);
     }};
-    std::vector<Solver> solvers = {savings, savings_sample_sort};
+    Solver tabu_search = {"Tabu search", [](const CVRP::InstanceData& data) {
+        return CVRP::SolveTabu(data, 0x47282834, 19, 7);
+    }};
+    std::vector<Solver> solvers = {savings, savings_sample_sort, tabu_search};
     TestCVRP(solvers);
 }

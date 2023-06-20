@@ -20,12 +20,17 @@ namespace CVRP {
         std::string name;
         std::string dataset_name;
         std::vector<Core::Point> nodes;
-        std::vector<Request> requests;
+        std::vector<float> quantities;
         Vehicle vehicle;
     };
 
+    struct Route {
+        std::vector<int> nodes;
+        float load;
+    };
+
     struct Solution {
-        std::vector<std::vector<int>> routes;
+        std::vector<Route> routes;
         float total_cost;
     };
 }

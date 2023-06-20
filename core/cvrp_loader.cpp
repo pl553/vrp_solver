@@ -53,13 +53,13 @@ namespace CVRP {
             std::swap(points_ids[id_to_index[depot]], points_ids[0]);    
         }
 
-        std::vector<CVRP::Request> requests;
+        std::vector<float> quantities(points_ids.size());
         auto requests_element = instance->FirstChildElement("requests");
         for (auto request_i = requests_element->FirstChildElement(); request_i != nullptr; request_i = request_i->NextSiblingElement()) {
             int node_id = request_i->IntAttribute("node");
             int node_index = id_to_index[node_id];
             float quantity = request_i->FirstChildElement("quantity")->FloatText();
-            requests.push_back({.node_id = node_index, .quantity = quantity});
+            quantities[node_index] += quantity;
         }
 
         std::vector<Core::Point> points(points_ids.size());
@@ -73,7 +73,7 @@ namespace CVRP {
             .name = std::move(name),
             .dataset_name = std::move(dataset_name),
             .nodes = std::move(points),
-            .requests = std::move(requests),
+            .quantities = std::move(quantities),
             .vehicle = vehicle
         };
     }

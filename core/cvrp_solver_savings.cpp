@@ -28,28 +28,18 @@ struct Saving {
     }
 };
 
-float EdgeCost(const Core::Point& a, const Core::Point& b) {
-    float dx = a.x - b.x;
-    float dy = a.y - b.y;
-    return std::sqrt(dx * dx + dy * dy);
-}
-
 namespace CVRP {
     Solution SolveSavings(const CVRP::InstanceData& data, bool use_sample_sort) {
         const auto& nodes = data.nodes;
-        const auto& requests = data.requests;
         const auto vehicle = data.vehicle;
         int n = nodes.size();
-        std::vector<float> quantities(n);
-        for (const auto& request : requests) {
-            quantities[request.node_id] += request.quantity;
-        }
+        const auto& quantities = data.quantities;
         std::vector<Saving> savings;
         savings.reserve(n * (n - 1));
         for (int i = 1; i < n; ++i) {
             for (int j = 1; j < n; ++j) {
                 if (i != j) {
-                    float s = EdgeCost(nodes[i], nodes[0]) + EdgeCost(nodes[0], nodes[j]) - EdgeCost(nodes[i], nodes[j]);
+                    float s = Core::EdgeCost(nodes[i], nodes[0]) + Core::EdgeCost(nodes[0], nodes[j]) - Core::EdgeCost(nodes[i], nodes[j]);
                     savings.push_back({i, j, s});
                 }
             }
@@ -92,14 +82,15 @@ namespace CVRP {
             }
         }
         float total_cost = 0;
-        std::vector<std::vector<int>> routes_sol; 
+        std::vector<Route> routes_sol; 
         for (const auto& p : routes) {
             routes_sol.emplace_back();
             int prev_id = 0;
             for (int id : p.first) {
                 total_cost += EdgeCost(nodes[prev_id], nodes[id]);
                 prev_id = id;
-                routes_sol.back().push_back(id);
+                routes_sol.back().nodes.push_back(id);
+                routes_sol.back().load = p.second;
             }
             total_cost += EdgeCost(nodes[prev_id], nodes[0]);
         }
