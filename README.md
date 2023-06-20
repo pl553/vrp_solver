@@ -1,4 +1,5 @@
 ## Dataset: Christofides et al. 1979
+http://vrp.atd-lab.inf.puc-rio.br/index.php/en/plotted-instances?data=CMT1
 | Instance | Best known solution | Savings algorithm | Savings algorithm (sample sort) | Tabu search (it = 19, tabu = 7) | Tabu search (it = 95, tabu = 7) |
 | --- | --- | --- | --- | --- | --- |
 | CMT01 | 524.61 | 600.67 <br> 14.50% over BKS <br> 0.00 ms | 600.67 <br> 14.50% over BKS <br> 1.00 ms | 599.78 <br> 14.33% over BKS <br> 4.00 ms | 596.98 <br> 13.80% over BKS <br> 21.00 ms |
@@ -15,6 +16,7 @@
 | CMT05 | 1291.29 | 1570.20 <br> 21.60% over BKS <br> 19.00 ms | 1570.20 <br> 21.60% over BKS <br> 21.00 ms | 1558.86 <br> 20.72% over BKS <br> 49.00 ms | 1558.50 <br> 20.69% over BKS <br> 177.00 ms |
 |  |  | Total time: 78.00ms <br> Average % over BKS: 14.84% | Total time: 103.00ms <br> Average % over BKS: 14.84% | Total time: 243.00ms <br> Average % over BKS: 14.04% | Total time: 955.00ms <br> Average % over BKS: 13.77% |
 ## Dataset: Golden et al. 1998
+http://vrp.atd-lab.inf.puc-rio.br/index.php/en/plotted-instances?data=Golden_1
 | Instance | Best known solution | Savings algorithm | Savings algorithm (sample sort) | Tabu search (it = 19, tabu = 7) | Tabu search (it = 95, tabu = 7) |
 | --- | --- | --- | --- | --- | --- |
 | Golden_15 | 1337.92 | 1517.92 <br> 13.45% over BKS <br> 77.00 ms | 1517.92 <br> 13.45% over BKS <br> 44.00 ms | 1507.98 <br> 12.71% over BKS <br> 199.00 ms | 1501.35 <br> 12.22% over BKS <br> 719.00 ms |
