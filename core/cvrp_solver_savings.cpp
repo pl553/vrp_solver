@@ -8,6 +8,8 @@
 #include <iostream>
 #include <unordered_set>
 
+#include <boost/sort/sort.hpp>
+
 #include "cvrp_model.hpp"
 
 struct Saving {
@@ -16,6 +18,12 @@ struct Saving {
     float s;
 
     bool operator<(const Saving& other) const {
+        if (s == other.s) {
+            if (node_i == other.node_i) {
+                return node_j < other.node_j;
+            }
+            return node_i < other.node_i;
+        }
         return s < other.s;
     }
 };
@@ -27,7 +35,7 @@ float EdgeCost(const Core::Point& a, const Core::Point& b) {
 }
 
 namespace CVRP {
-    Solution SolveSavings(const CVRP::InstanceData& data) {
+    Solution SolveSavings(const CVRP::InstanceData& data, bool use_sample_sort) {
         const auto& nodes = data.nodes;
         const auto& requests = data.requests;
         const auto vehicle = data.vehicle;
@@ -46,7 +54,13 @@ namespace CVRP {
                 }
             }
         }
-        std::sort(savings.begin(), savings.end());
+        if (use_sample_sort) {
+            boost::sort::sample_sort(savings.begin(), savings.end());
+        }
+        else {
+            std::sort(savings.begin(), savings.end());
+        }
+        assert(std::is_sorted(savings.begin(), savings.end()));
         std::reverse(savings.begin(), savings.end());
         std::list<std::pair<std::list<int>,float>> routes;
         std::vector<std::list<std::pair<std::list<int>,float>>::iterator> ending(n, routes.end());

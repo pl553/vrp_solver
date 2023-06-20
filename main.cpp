@@ -19,11 +19,16 @@ struct InstanceTestResults {
 };
 
 struct SolverTestResults {
-    std::vector<InstanceTestResults> results;
+    std::vector<InstanceTestResults> instance_results;
     float total_time_ms;
 };
 
-typedef std::function<CVRP::Solution(const CVRP::InstanceData& data)> Solver;
+typedef std::function<CVRP::Solution(const CVRP::InstanceData& data)> SolverFunction;
+
+struct Solver {
+    std::string name;
+    SolverFunction fun;
+};
 
 SolverTestResults TestSolver(Solver solver, const std::vector<CVRP::InstanceData>& dataset) {
     std::vector<InstanceTestResults> results;
@@ -31,7 +36,7 @@ SolverTestResults TestSolver(Solver solver, const std::vector<CVRP::InstanceData
 
     for (const auto& instance : dataset) {
         auto begin = std::chrono::high_resolution_clock::now();
-        auto solution = solver(instance);
+        auto solution = solver.fun(instance);
         auto end = std::chrono::high_resolution_clock::now();
 
         assert(CVRP::Verify(instance, solution));
@@ -46,12 +51,12 @@ SolverTestResults TestSolver(Solver solver, const std::vector<CVRP::InstanceData
     }
 
     return SolverTestResults {
-        .results = std::move(results),
+        .instance_results = std::move(results),
         .total_time_ms = total_time_ms
     };
 }
 
-void TestCVRP() {
+void TestCVRP(std::vector<Solver> solvers) {
     if (!std::filesystem::is_directory("test_data/CVRP")) {
         throw std::runtime_error("Test data folder not found");
     }
@@ -80,43 +85,60 @@ void TestCVRP() {
             auto dataset_name = dataset.begin()->dataset_name;
             int n_instances = dataset.size();
 
-            auto savings_results = TestSolver(CVRP::SolveSavings, dataset);
-
-            std::cout << std::endl;
-            std::cout << "Dataset: " << dataset_name << std::endl; 
+            std::vector<SolverTestResults> solver_results(solvers.size());
+            for (size_t i = 0; i < solvers.size(); ++i) {
+                solver_results[i] = TestSolver(solvers[i], dataset);
+            }
 
             results_out << std::fixed << std::setprecision(2);
             results_out << "## Dataset: " << dataset_name << std::endl;
-            results_out << "| Instance | Best known solution | Savings algorithm |" << std::endl;
-            results_out << "| --- | --- | --- |" << std::endl;
+            results_out << "| Instance | Best known solution |";
+            for (auto& s : solvers) {
+                results_out << " " << s.name << " |";
+            }
+            results_out << std::endl;
+            results_out << "|";
+            for (size_t i = 0; i < 2 + solvers.size(); ++i) {
+                results_out << " --- |";
+            }
+            results_out << std::endl;
 
-            float savings_total_bks_diff = 0;
+            std::vector<float> total_bks_diff(solvers.size(), 0);
             for (size_t i = 0; i < dataset.size(); ++i) {
                 const auto& name = dataset[i].name;
                 float bks = name_bks[name];
-                const auto& result = savings_results.results[i];
+                results_out << "| " << name << " | " << bks << " |";
 
-                float cost = result.cost;
-                float time_ms = result.time_ms;
+                for (size_t j = 0; j < solvers.size(); ++j) {
+                    const auto& result = solver_results[j].instance_results[i];
 
-                float bks_diff = 100 * (cost - bks) / bks;
-                savings_total_bks_diff += bks_diff;
+                    float cost = result.cost;
+                    float time_ms = result.time_ms;
 
-                std::cout << name << std::endl;
-                std::cout << "  Savings algorithm: " << cost << std::endl;
-                std::cout << "    " << bks_diff << "% over BKS" << std::endl;
-                std::cout << "    Time: " << time_ms << " ms" << std::endl;
-                std::cout << "  Best known solution: " << bks << std::endl;
+                    float bks_diff = 100 * (cost - bks) / bks;
+                    total_bks_diff[j] += bks_diff;
 
-                results_out << "| " << name << " | " << bks << " | " << cost << " <br> " << bks_diff << "% over BKS <br> " << time_ms << " ms |" << std::endl;  
+                    results_out << " " << cost << " <br> " << bks_diff << "% over BKS <br> " << time_ms << " ms |";
+                }
+                results_out << std::endl;
             }
-            float savings_average_diff = savings_total_bks_diff / n_instances;
-            results_out << "|  |  | Total time: " << savings_results.total_time_ms << "ms <br> Average % over BKS: " << savings_average_diff << "% |" << std::endl;
-            std::cout << "Total savings algorithm time: " << savings_results.total_time_ms << " ms" << std::endl;
+            results_out << "|  |  |";
+            for (size_t i = 0; i < solvers.size(); ++i) {
+                float average_diff = total_bks_diff[i] / n_instances;
+                results_out << " Total time: " << solver_results[i].total_time_ms << "ms <br> Average % over BKS: " << average_diff << "% |";
+            }
+            results_out << std::endl;
         }
     }
 }
 
 int main() {
-    TestCVRP();
+    Solver savings = {"Savings algorithm", [](const CVRP::InstanceData& data) {
+        return CVRP::SolveSavings(data);
+    }};
+    Solver savings_sample_sort = {"Savings algorithm (sample sort)", [](const CVRP::InstanceData& data) {
+        return CVRP::SolveSavings(data, true);
+    }};
+    std::vector<Solver> solvers = {savings, savings_sample_sort};
+    TestCVRP(solvers);
 }
