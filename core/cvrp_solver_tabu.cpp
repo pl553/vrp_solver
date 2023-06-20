@@ -33,25 +33,12 @@ namespace CVRP {
                 Solution neighbor = s0;
 
                 auto& route_i = neighbor.routes[i];
-                auto& other_route = neighbor.routes[i];
-                size_t other_route_n = other_route.nodes.size();
-                size_t k = rng() % other_route_n;
+                size_t route_i_n = route_i.nodes.size();
+                size_t k = rng() % route_i_n;
 
-                float route_i_quantity_j = data.quantities[route_i.nodes[j]];
-                float other_route_quantity_k = data.quantities[other_route.nodes[k]];
-
-                if (route_i != other_route) {
-                    route_i.load = route_i.load - route_i_quantity_j + other_route_quantity_k;
-                    other_route.load = other_route.load - other_route_quantity_k + route_i_quantity_j;
-
-                    if (route_i.load > data.vehicle.capacity || other_route.load > data.vehicle.capacity) {
-                        continue;
-                    }
-                }
-
-                float cost_delta = -GetAdjacentEdgeCost(j, route_i.nodes, data) - GetAdjacentEdgeCost(k, other_route.nodes, data);
-                std::swap(route_i.nodes[j], other_route.nodes[k]);
-                cost_delta += GetAdjacentEdgeCost(j, route_i.nodes, data) + GetAdjacentEdgeCost(k, other_route.nodes, data);
+                float cost_delta = -GetAdjacentEdgeCost(j, route_i.nodes, data) - GetAdjacentEdgeCost(k, route_i.nodes, data);
+                std::swap(route_i.nodes[j], route_i.nodes[k]);
+                cost_delta += GetAdjacentEdgeCost(j, route_i.nodes, data) + GetAdjacentEdgeCost(k, route_i.nodes, data);
 
                 neighbor.total_cost += cost_delta;
                 neighbors.push_back(std::move(neighbor));
